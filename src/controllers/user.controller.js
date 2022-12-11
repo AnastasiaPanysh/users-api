@@ -1,45 +1,51 @@
 const express = require('express');
+
+const { isValidId,
+        isValidUser
+} = require('../helper/validation');
+
 const {
-    getUsers,
-    getUsersById,
-    updateUsers
-} = require('../services/user.service')
+    User
+} = require('../services/user.service');
+
+const { buildResponse } = require('../helper/buildResponse')
 
 const router = express.Router()
 
+const user = new User();
+
 router.get('/', (req, res) => {
     try {
-        const users = getUsers()
-        res.status(200).send(users)
+        const users = user.getUsers()
+        buildResponse(res, 200, users)
     } catch (error) {
-        res.status(500).send(error.message)
-
+        buildResponse(res, 500, error.message)
     }
 })
 
-router.get('/:id', (req, res) => {
+router.get('/:id', isValidId, (req, res) => {
     try {
         const {
             id
         } = req.params;
-        const users = getUsersById(id)
-        res.status(200).send(users)
+        const users = user.getUsersById(id)
+        buildResponse(res, 200, users)
     } catch (error) {
-        res.status(500).send(error.message)
-
+        buildResponse(res, 500, error.message)
     }
 })
 
-router.post('/', (req, res) => {
+router.post('/', isValidUser, (req, res) => {
     try {
-        res.status(200).send('good')
+        const { name, surname, email, pwd } = req.body
+        const users = user.createUsers(name, surname, email, pwd)
+        buildResponse(res, 200, users)
     } catch (error) {
-        res.status(500).send('error')
-
+        buildResponse(res, 500, error.message)
     }
 })
 
-router.put('/:id', (req, res) => {
+router.put('/:id', isValidId, isValidUser, (req, res) => {
     try {
         const {
             id
@@ -51,20 +57,34 @@ router.put('/:id', (req, res) => {
             email,
             pwd
         } = req.body;
-        const users = updateUsers(id, name, surname, email, pwd)
-        res.status(200).send(users)
+        const users = user.updateUsers(id, name, surname, email, pwd)
+        buildResponse(res, 200, users)
     } catch (error) {
-        res.status(500).send(error.message)
-
+        buildResponse(res, 500, error.message)
     }
 })
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', isValidId, (req, res) => {
     try {
-        res.status(200).send('good')
-    } catch (error) {
-        res.status(500).send('error')
+        const {
+            id
+        } = req.params;
+        const users = user.deleteUsers(id)
+        buildResponse(res, 200, users)
 
+    } catch (error) {
+        buildResponse(res, 500, error.message)
+    }
+})
+router.patch('/:id', isValidId, (req, res) => {
+    try {
+        const {
+            id
+        } = req.params;
+        const users = user.patchUsers(id, req.body)
+        buildResponse(res, 200, users)
+    } catch (error) {
+        buildResponse(res, 500, error.message)
     }
 })
 
